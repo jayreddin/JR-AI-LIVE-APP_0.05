@@ -10,13 +10,13 @@ export class DeepgramTranscriber {
         this.isConnected = false;
         this.eventListeners = new Map();
         this.sampleRate = sampleRate;
-        console.info('DeepgramTranscriber initialized');
+        this.emit('initialized');
     }
 
     async connect() {
         try {
             const url = `wss://api.deepgram.com/v1/listen?encoding=linear16&sample_rate=${this.sampleRate}`;
-            console.info('Attempting to connect to Deepgram WebSocket...');
+            this.emit('connecting');
             
             // Create WebSocket with authorization in protocol
             this.ws = new WebSocket(url, ['token', this.apiKey]);
@@ -24,7 +24,7 @@ export class DeepgramTranscriber {
 
             this.ws.onopen = () => {
                 this.isConnected = true;
-                console.info('WebSocket connection established');
+                // Connection event emitted below after config is sent
                 
                 const config = {
                     type: 'Configure',
@@ -40,7 +40,7 @@ export class DeepgramTranscriber {
                     },
                 };
                 
-                console.debug('Sending configuration:', config);
+                this.emit('configuring', config);
                 this.ws.send(JSON.stringify(config));
                 this.emit('connected');
             };
@@ -75,9 +75,8 @@ export class DeepgramTranscriber {
             };
 
             this.ws.onclose = () => {
-                console.info('WebSocket connection closed');
-                this.isConnected = false;
                 this.emit('disconnected');
+                this.isConnected = false;
             };
 
         } catch (error) {

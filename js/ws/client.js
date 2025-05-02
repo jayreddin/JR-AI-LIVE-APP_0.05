@@ -37,20 +37,20 @@ export class GeminiWebsocketClient extends EventEmitter {
             return this.connectionPromise;
         }
 
-        console.info('🔗 Establishing WebSocket connection...');
+        this.emit('connecting');
         this.isConnecting = true;
         this.connectionPromise = new Promise((resolve, reject) => {
             const ws = new WebSocket(this.url);
 
             // Send setup message upon successful connection
             ws.addEventListener('open', () => {
-                console.info('🔗 Successfully connected to websocket');
+                this.emit('connected');
                 this.ws = ws;
                 this.isConnecting = false;
 
                 // Configure
                 this.sendJSON({ setup: this.config });
-                console.debug("Setup message with the following configuration was sent:", this.config);
+                this.emit('setup_sent', this.config);
                 resolve();
             });
 
@@ -82,7 +82,7 @@ export class GeminiWebsocketClient extends EventEmitter {
             this.ws = null;
             this.isConnecting = false;
             this.connectionPromise = null;
-            console.info(`${this.name} successfully disconnected from websocket`);
+            this.emit('disconnected', this.name);
         }
     }
 
@@ -96,14 +96,14 @@ export class GeminiWebsocketClient extends EventEmitter {
         
         // Handle tool call responses
         if (response.toolCall) {
-            console.debug(`${this.name} received tool call`, response);       
+            this.emit('tool_call', response.toolCall);
             this.emit('tool_call', response.toolCall);
             return;
         }
 
         // Handle tool call cancellation
         if (response.toolCallCancellation) {
-            console.debug(`${this.name} received tool call cancellation`, response);
+            this.emit('tool_call_cancellation', response.toolCallCancellation);
             this.emit('tool_call_cancellation', response.toolCallCancellation);
             return;
         }
@@ -112,12 +112,12 @@ export class GeminiWebsocketClient extends EventEmitter {
         if (response.serverContent) {
             const { serverContent } = response;
             if (serverContent.interrupted) {
-                console.debug(`${this.name} is interrupted`);
+                this.emit('interrupted');
                 this.emit('interrupted');
                 return;
             }
             if (serverContent.turnComplete) {
-                console.debug(`${this.name} has completed its turn`);
+                this.emit('turn_complete');
                 this.emit('turn_complete');
             }
             if (serverContent.modelTurn) {
@@ -150,11 +150,11 @@ export class GeminiWebsocketClient extends EventEmitter {
                 // Emit remaining content
                 if (otherParts.length) {
                     this.emit('content', { modelTurn: { parts: otherParts } });
-                    console.debug(`${this.name} sent:`, otherParts);
+                    this.emit('other_content', otherParts);
                 }
             }
         } else {
-            console.debug(`${this.name} received unmatched message:`, response);
+            this.emit('unmatched_message', response);
         }
     }
 
@@ -166,7 +166,7 @@ export class GeminiWebsocketClient extends EventEmitter {
     async sendAudio(base64audio) {
         const data = { realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm', data: base64audio }] } };
         await this.sendJSON(data);
-        console.debug(`Sending audio chunk to ${this.name}.`);
+        this.emit('audio_sent', this.name);
     }
 
     /**
@@ -177,7 +177,10 @@ export class GeminiWebsocketClient extends EventEmitter {
     async sendImage(base64image) {
         const data = { realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: base64image }] } };
         await this.sendJSON(data);
-        console.debug(`Image with a size of ${Math.round(base64image.length/1024)} KB was sent to the ${this.name}.`);
+        this.emit('image_sent', {
+            name: this.name,
+            size: Math.round(base64image.length/1024)
+        });
     }
 
     /**
@@ -198,7 +201,7 @@ export class GeminiWebsocketClient extends EventEmitter {
         };
         try {
             await this.sendJSON(formattedText);
-            console.debug(`Text sent to ${this.name}:`, text);
+            this.emit('text_sent', { name: this.name, text });
         } catch (error) {
             console.error(`Failed to send text to ${this.name}:`, error);
             // Consider emitting an error event here to notify the application
@@ -235,7 +238,7 @@ export class GeminiWebsocketClient extends EventEmitter {
         }
 
         await this.sendJSON({ toolResponse: {functionResponses: result} });
-        console.debug(`Tool response sent to ${this.name}:`, toolResponse);
+        this.emit('tool_response_sent', { name: this.name, response: toolResponse });
     }
 
     /**

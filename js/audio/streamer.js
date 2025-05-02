@@ -85,13 +85,23 @@ export class AudioStreamer {
                 float32Array[i] = int16 / 32768;  // Scale to [-1.0, 1.0] range
             }
 
-            // Limit processing buffer size to prevent memory issues
-            if (this.processingBuffer.length > this.bufferSize * 4) {
-                console.warn('Processing buffer overflow, resetting', { 
+            // Monitor and manage processing buffer size to prevent memory issues
+            const warningThreshold = this.bufferSize * 3;
+            const maxSize = this.bufferSize * 4;
+            
+            if (this.processingBuffer.length > maxSize) {
+                console.warn('Processing buffer overflow, performing graceful reset', {
                     bufferSize: this.processingBuffer.length,
-                    maxSize: this.bufferSize * 4 
+                    maxSize: maxSize
                 });
-                this.processingBuffer = new Float32Array(0);
+                // Keep the most recent data when resetting
+                this.processingBuffer = this.processingBuffer.slice(-this.bufferSize);
+            } else if (this.processingBuffer.length > warningThreshold) {
+                console.warn('Processing buffer approaching limit', {
+                    bufferSize: this.processingBuffer.length,
+                    warningThreshold: warningThreshold,
+                    maxSize: maxSize
+                });
             }
 
             // Accumulate samples in processing buffer

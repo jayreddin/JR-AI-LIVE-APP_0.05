@@ -114,7 +114,7 @@ export class GeminiAgent{
 
         // Add an event handler when the model finishes speaking if needed
         this.client.on('turn_complete', () => {
-            console.info('Model finished speaking');
+            // Model finished speaking event emitted
             this.emit('turn_complete');
         });
 
@@ -166,7 +166,7 @@ export class GeminiAgent{
                 this.client.sendImage(imageBase64);                
             }, this.captureInterval);
             
-            console.info('Camera capture started');
+            this.emit('camera_started');
         } catch (error) {
             await this.disconnect();
             throw new Error('Failed to start camera capture: ' + error);
@@ -186,7 +186,7 @@ export class GeminiAgent{
             this.cameraManager.dispose();
         }
         
-        console.info('Camera capture stopped');
+        this.emit('camera_stopped');
     }
 
     /**
@@ -206,7 +206,7 @@ export class GeminiAgent{
                 this.client.sendImage(imageBase64);
             }, this.captureInterval);
             
-            console.info('Screen sharing started');
+            this.emit('screen_started');
         } catch (error) {
             await this.stopScreenShare();
             throw new Error('Failed to start screen sharing: ' + error);
@@ -226,7 +226,7 @@ export class GeminiAgent{
             this.screenManager.dispose();
         }
         
-        console.info('Screen sharing stopped');
+        this.emit('screen_stopped');
     }
 
     /**
@@ -291,7 +291,7 @@ export class GeminiAgent{
             this.initialized = false;
             this.connected = false;
             
-            console.info('Disconnected and cleaned up all resources');
+            this.emit('disconnected');
         } catch (error) {
             throw new Error('Disconnect error:' + error);
         }
@@ -306,7 +306,7 @@ export class GeminiAgent{
             return;
         }
 
-        console.info('Initializing Deepgram model speech transcriber...');
+        this.emit('model_transcriber_init');
 
         // Promise to send keep-alive every 10 seconds once connected
         const connectionPromise = new Promise((resolve) => {
@@ -325,7 +325,7 @@ export class GeminiAgent{
         // Just log transcription to console for now
         this.modelTranscriber.on('transcription', (transcript) => {
             this.emit('transcription', transcript);
-            console.debug('Model speech transcription:', transcript);
+            // Transcription event already emitted above
         });
 
         // Connect to Deepgram and execute promise
@@ -342,7 +342,7 @@ export class GeminiAgent{
             return;
         }
 
-        console.info('Initializing Deepgram user speech transcriber...');
+        this.emit('user_transcriber_init');
 
         // Promise to send keep-alive every 10 seconds once connected
         const connectionPromise = new Promise((resolve) => {
@@ -361,7 +361,7 @@ export class GeminiAgent{
         // Handle user transcription events
         this.userTranscriber.on('transcription', (transcript) => {
             this.emit('user_transcription', transcript);
-            console.debug('User speech transcription:', transcript);
+            // Transcription event already emitted above
         });
 
         // Connect to Deepgram and execute promise
@@ -399,7 +399,7 @@ export class GeminiAgent{
             }
             
             this.initialized = true;
-            console.info(`${this.client.name} initialized successfully`);
+            this.emit('initialized', this.client.name);
             this.client.sendText('.');  // Trigger the model to start speaking first
         } catch (error) {
             console.error('Initialization error:', error);
