@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Live</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <button id="disconnectBtn" class="power-btn">
+                <span class="icon">⏵</span>
+            </button>
+            <div class="response-toggle">
+                <label class="switch">
+                    <input type="checkbox" id="responseTypeToggle">
+                    <span class="slider round"></span>
+                </label>
+                <span class="toggle-label">Text</span>
+            </div>
+        </header>
+
+        <div id="chatHistory" class="chat-history"></div>
+
+        <div class="control-panel">
+            <button id="micBtn" class="control-btn">
+                <span class="mic-icon">🎤</span>
+            </button>
+            <button id="cameraBtn" class="control-btn">
+                <span class="camera-icon">📷</span>
+            </button>
+            <button id="screenBtn" class="control-btn">
+                <span class="screen-icon">🖥️</span>
+            </button>
+            <button id="settingsBtn" class="control-btn">
+                <span class="settings-icon">⚙️</span>
+            </button>
+        </div>
+
+        <canvas id="visualizer" class="visualizer"></canvas>
+
+        <div class="text-input-container">
+            <input type="text" id="messageInput" placeholder="Type your message..." class="text-input">
+            <button id="sendBtn" class="send-btn">➤</button>
+        </div>
+
+        <div id="cameraPreview" class="preview-container camera-preview">
+            <button class="camera-switch-btn">⟲</button>
+        </div>
+        <div id="screenPreview" class="preview-container screen-preview"></div>
+    </div>
+    <script type="module" src="js/script.js"></script>
+</body>
+</html>

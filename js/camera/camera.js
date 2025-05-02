@@ -1,0 +1,285 @@
+// import interact from 'interactjs';
+// Use a relative path for intera.js as in the working example
+.import interact from ../tools/'interac.tjs';
+
+/**
+ * Manages camera access, capture, and image processing
+ */
+export class CameraManager {
+    constructor(config) {
+        this.config = {
+            width: config.width || 640,
+            quality: config.quality || 0.8,
+            facingMode: config.facingMode
+        };
+        
+        this.stream = null;
+        this.videoElement = null;
+        this.canvas = null;
+        this.ctx = null;
+        this.isInitialized = false;
+        this.aspectRatio = null;
+        this.previewContainer = null;
+        this.switchButton = null;
+        this.captureInterval = null;
+        this.fps = parseInt(localStorage.getItem('fps')) || 5;
+    }
+
+    setupDraggable() {
+        if (!this.previewContainer) return;
+
+        interact(this.previewContainer)
+            .draggable({
+                inertia: true,
+                modifiers: [
+                    interact.modifiers.restrictRect({
+                        restriction: 'parent',
+                        endOnly: true
+                    })
+                ],
+                listeners: {
+                    move: this.dragMoveListener.bind(this)
+                }
+            })
+            .resizable({
+                edges: { left: true, right: true, bottom: true, top: true },
+                restrictEdges: {
+                    outer: 'parent',
+                    endOnly: true
+                },
+                restrictSize: {
+                    min: { width: 100, height: 100 }
+                },
+                inertia: true
+            })
+            .on('resizemove', this.resizeMoveListener.bind(this));
+    }
+
+    dragMoveListener(event) {
+        const target = event.target;
+        const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+        const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+        target.style.transform = `translate(${x}px, ${y}px)`;
+        target.setAttribute('data-x', x);
+        target.setAttribute('data-y', y);
+    }
+
+    resizeMoveListener(event) {
+        const target = event.target;
+        let x = (parseFloat(target.getAttribute('data-x')) || 0);
+        let y = (parseFloat(target.getAttribute('data-y')) || 0);
+
+        target.style.width = event.rect.width + 'px';
+        target.style.height = event.rect.height + 'px';
+
+        x += event.deltaRect.left;
+        y += event.deltaRect.top;
+
+        target.style.transform = `translate(${x}px, ${y}px)`;
+        target.setAttribute('data-x', x);
+        target.setAttribute('data-y', y);
+    }
+
+    showPreview() {
+        if (this.previewContainer) {
+            this.previewContainer.style.display = 'block';
+            this.setupDraggable();
+        }
+    }
+
+    hidePreview() {
+        if (this.previewContainer) {
+            this.previewContainer.style.display = 'none';
+        }
+    }
+
+    startAutoCapture() {
+        if (this.captureInterval) {
+            clearInterval(this.captureInterval);
+        }
+
+        const interval = 1000 / this.fps;
+        this.captureInterval = setInterval(async () => {
+            try {
+                const imageBase64 = await this.capture();
+                this.emit('frame', imageBase64);
+            } catch (error) {
+                console.error('Auto capture error:', error);
+            }
+        }, interval);
+    }
+
+    stopAutoCapture() {
+        if (this.captureInterval) {
+            clearInterval(this.captureInterval);
+            this.captureInterval = null;
+        }
+    }
+
+    _createSwitchButton() {
+        if (!/Mobi|Android/i.test(navigator.userAgent)) return;
+
+        this.switchButton = document.createElement('button');
+        this.switchButton.className = 'camera-switch-btn';
+        this.switchButton.innerHTML = '⟲';
+        this.switchButton.addEventListener('click', () => this.switchCamera());
+        this.previewContainer.appendChild(this.switchButton);
+    }
+
+    /**
+     * Enhanced error handling per MAINPLAN.md reviewer suggestions.
+     */
+    async switchCamera() {
+        if (!this.isInitialized) return;
+        
+        this.config.facingMode = this.config.facingMode === 'user' ? 'environment' : 'user';
+        localStorage.setItem('facingMode', this.config.facingMode);
+        
+        if (this.stream) {
+            this.stream.getTracks().forEach(track => track.stop());
+        }
+
+        try {
+            const constraints = {
+                video: {
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    facingMode: this.config.facingMode
+                }
+            };
+
+            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+            this.videoElement.srcObject = this.stream;
+            await this.videoElement.play();
+        } catch (error) {
+            // Reviewer suggestion: granular error messages
+            if (error.name === 'NotAllowedError') {
+                console.error('Camera switch failed: access denied.');
+            } else if (error.name === 'NotFoundError') {
+                console.error('Camera switch failed: no camera device found.');
+            } else if (error.name === 'NotReadableError') {
+                console.error('Camera switch failed: camera in use by another application.');
+            } else {
+                console.error('Failed to switch camera:', error);
+            }
+            this.config.facingMode = localStorage.getItem('facingMode') || 'environment';
+        }
+    }
+
+    /**
+     * Enhanced error handling and cleanup per MAINPLAN.md reviewer suggestions.
+     */
+    async initialize() {
+        if (this.isInitialized) return;
+
+        try {
+            const constraints = {
+                video: {
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
+            };
+
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                this.config.facingMode = this.config.facingMode || 'user';
+                constraints.video.facingMode = this.config.facingMode;
+            }
+
+            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            this.videoElement = document.createElement('video');
+            this.videoElement.srcObject = this.stream;
+            this.videoElement.playsInline = true;
+            
+            const previewContainer = document.getElementById('cameraPreview');
+            if (previewContainer) {
+                previewContainer.appendChild(this.videoElement);
+                this.previewContainer = previewContainer;
+                this._createSwitchButton();
+                this.showPreview();
+            }
+            
+            await this.videoElement.play();
+
+            const videoWidth = this.videoElement.videoWidth;
+            const videoHeight = this.videoElement.videoHeight;
+            this.aspectRatio = videoHeight / videoWidth;
+
+            const canvasWidth = this.config.width;
+            const canvasHeight = Math.round(this.config.width * this.aspectRatio);
+
+            this.canvas = document.createElement('canvas');
+            this.canvas.width = canvasWidth;
+            this.canvas.height = canvasHeight;
+            this.ctx = this.canvas.getContext('2d');
+
+            this.isInitialized = true;
+        } catch (error) {
+            // Reviewer suggestion: granular error messages and guaranteed cleanup
+            this.dispose();
+            if (error.name === 'NotAllowedError') {
+                throw new Error('Camera access denied by user or browser settings.');
+            } else if (error.name === 'NotFoundError') {
+                throw new Error('No camera device found.');
+            } else if (error.name === 'NotReadableError') {
+                throw new Error('Camera is already in use by another application.');
+            } else {
+                throw new Error(`Failed to initialize camera: ${error.message}`);
+            }
+        }
+    }
+
+    getDimensions() {
+        if (!this.isInitialized) {
+            throw new Error('Camera not initialized. Call initialize() first.');
+        }
+        return {
+            width: this.canvas.width,
+            height: this.canvas.height
+        };
+    }
+
+    async capture() {
+        if (!this.isInitialized) {
+            throw new Error('Camera not initialized. Call initialize() first.');
+        }
+
+        this.ctx.drawImage(
+            this.videoElement,
+            0, 0,
+            this.canvas.width,
+            this.canvas.height
+        );
+
+        return this.canvas.toDataURL('image/jpeg', this.config.quality).split(',')[1];
+    }
+
+    dispose() {
+        if (this.stream) {
+            this.stream.getTracks().forEach(track => track.stop());
+            this.stream = null;
+        }
+        
+        if (this.videoElement) {
+            this.videoElement.srcObject = null;
+            this.videoElement = null;
+        }
+
+        if (this.switchButton) {
+            this.switchButton.remove();
+            this.switchButton = null;
+        }
+
+        if (this.previewContainer) {
+            this.hidePreview();
+            this.previewContainer.innerHTML = '';
+            this.previewContainer = null;
+        }
+
+        this.canvas = null;
+        this.ctx = null;
+        this.isInitialized = false;
+        this.aspectRatio = null;
+    }
+}
