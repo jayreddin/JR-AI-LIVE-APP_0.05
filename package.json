@@ -9,11 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "interactjs": "^1.10.26",
-    "draggable": "^4.2.0",
     "@interactjs/actions": "^1.10.26",
     "@interactjs/auto-start": "^1.10.26",
-    "@interactjs/modifiers": "^1.10.26"
+    "@interactjs/modifiers": "^1.10.26",
+    "draggable": "^4.2.0",
+    "eventemitter3": "^5.0.1",
+    "interactjs": "^1.10.26"
   },
   "devDependencies": {
     "vite": "^6.3.2"

@@ -1,6 +1,4 @@
-// import interact from 'interactjs';
-// Use a relative path for intera.js as in the working example
-.import interact from ../tools/'interac.tjs';
+import interact from 'interactjs';
 
 /**
  * Manages camera access, capture, and image processing
