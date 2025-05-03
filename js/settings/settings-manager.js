@@ -59,6 +59,7 @@ class SettingsManager {
             sexualValue: this.dialog.querySelector('#sexualValue'),
             civicInput: this.dialog.querySelector('#civicIntegrityThreshold'),
             civicValue: this.dialog.querySelector('#civicValue'),
+            visualizerColorInput: this.dialog.querySelector('#visualizerColor'),
             saveBtn: this.dialog.querySelector('#settingsSaveBtn')
         };
     }
@@ -111,16 +112,19 @@ class SettingsManager {
             'dangerousInput', 'sexualInput', 'civicInput'
         ];
 
+        inputElements.push('visualizerColorInput');
+
+        const updateValues = () => this.updateDisplayValues();
         inputElements.forEach(elementName => {
-            const fn = () => this.updateDisplayValues();
-            addListener(this.elements[elementName], 'input', fn);
+            addListener(this.elements[elementName], 'input', updateValues);
         });
     }
 
     loadSettings() {
         try {
             // Load values from localStorage
-            this.elements.apiKeyInput.value = localStorage.getItem('apiKey') || '';
+            this.elements.apiKeyInput.value = localStorage.getItem('apiKey') || "";
+            this.elements.visualizerColorInput.value = localStorage.getItem('visualizerColor') || "#00FF00";
             this.elements.deepgramApiKeyInput.value = localStorage.getItem('deepgramApiKey') || '';
             this.elements.voiceSelect.value = localStorage.getItem('voiceName') || 'Aoede';
             this.elements.sampleRateInput.value = localStorage.getItem('sampleRate') || '27000';
@@ -149,6 +153,7 @@ class SettingsManager {
     saveSettings() {
         try {
             localStorage.setItem('apiKey', this.elements.apiKeyInput.value);
+            localStorage.setItem('visualizerColor', this.elements.visualizerColorInput.value);
             localStorage.setItem('deepgramApiKey', this.elements.deepgramApiKeyInput.value);
             localStorage.setItem('voiceName', this.elements.voiceSelect.value);
             localStorage.setItem('sampleRate', this.elements.sampleRateInput.value);
@@ -174,19 +179,19 @@ class SettingsManager {
     }
 
     updateDisplayValues() {
-        this.elements.sampleRateValue.textContent = this.elements.sampleRateInput.value + ' Hz';
+        this.elements.sampleRateValue.textContent = this.elements.sampleRateInput.value + " Hz";
         this.elements.temperatureValue.textContent = this.elements.temperatureInput.value;
         this.elements.topPValue.textContent = this.elements.topPInput.value;
         this.elements.topKValue.textContent = this.elements.topKInput.value;
-        this.elements.fpsValue.textContent = this.elements.fpsInput.value + ' FPS';
-        this.elements.resizeWidthValue.textContent = this.elements.resizeWidthInput.value + 'px';
+        this.elements.fpsValue.textContent = this.elements.fpsInput.value + " FPS";
+        this.elements.resizeWidthValue.textContent = this.elements.resizeWidthInput.value + "px";
         this.elements.qualityValue.textContent = this.elements.qualityInput.value;
         this.elements.harassmentValue.textContent = this.getThresholdLabel(this.elements.harassmentInput.value);
         this.elements.dangerousValue.textContent = this.getThresholdLabel(this.elements.dangerousInput.value);
         this.elements.sexualValue.textContent = this.getThresholdLabel(this.elements.sexualInput.value);
         this.elements.civicValue.textContent = this.getThresholdLabel(this.elements.civicInput.value);
+        this.elements.visualizerColorValue.textContent = this.elements.visualizerColorInput.value;
     }
-
     getThresholdLabel(value) {
         const labels = {
             '0': 'None',

@@ -56,7 +56,7 @@ export class DeepgramTranscriber {
                             // console.debug('Received transcript:', transcript);
                             this.emit('transcription', transcript);
                         } else {
-                            // console.warn('Received Results message but no transcript found:', response);
+                            // eventEmitter.emit('warn', 'Received Results message but no transcript found:', response);
                         }
 
                     } else {
@@ -64,23 +64,24 @@ export class DeepgramTranscriber {
                     }
 
                 } catch (error) {
-                    console.error('Error processing WebSocket message:', error);
+                    eventEmitter.emit('error', 'Error processing WebSocket message:', error);
                     this.emit('error', error);
                 }
             };
 
             this.ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
+                eventEmitter.emit('error', 'WebSocket error:', error);
                 this.emit('error', error);
             };
 
             this.ws.onclose = () => {
+                eventEmitter.emit('info', 'WebSocket connection closed');
                 this.emit('disconnected');
                 this.isConnected = false;
             };
 
         } catch (error) {
-            console.error('Error in connect():', error);
+            eventEmitter.emit('error', 'Error in connect():', error);
             throw error;
         }
     }

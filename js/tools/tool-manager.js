@@ -3,6 +3,8 @@
  * Each tool must implement execute() and getDeclaration() methods.
  */
 
+import { eventEmitter } from '../utils/utils.js';
+  
 export class ToolManager {
     /**
      * Initializes a new ToolManager instance for getting registering, getting declarations, and executing tools.
@@ -18,11 +20,11 @@ export class ToolManager {
      */
     registerTool(name, toolInstance) {
         if (this.tools.has(name)) {
-            console.warn(`Tool ${name} is already registered`);
+            eventEmitter.emit('warn', `Tool ${name} is already registered`);
             return;
         }
         this.tools.set(name, toolInstance);
-        console.info(`Tool ${name} registered successfully`);
+        eventEmitter.emit('info', `Tool ${name} registered successfully`);
     }
 
     /**
@@ -36,7 +38,7 @@ export class ToolManager {
             if (tool.getDeclaration) {
                 allDeclarations.push(tool.getDeclaration());
             } else {
-                console.warn(`Tool ${tool.name} does not have a getDeclaration method`);
+                eventEmitter.emit('warn', `Tool ${tool.name} does not have a getDeclaration method`);
             }
         });
 
@@ -61,7 +63,7 @@ export class ToolManager {
             }
 
         } catch (error) {
-            console.error(`Tool execution failed: ${name}`, error);
+            eventEmitter.emit('error', `Tool execution failed: ${name}`, error);
             return {
                 output: null,
                 id: id,

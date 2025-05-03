@@ -59,7 +59,7 @@ export class GeminiWebsocketClient extends EventEmitter {
                 this.disconnect(ws);
                 const reason = error.reason || 'Unknown';
                 const message = `Could not connect to "${this.url}. Reason: ${reason}"`;
-                console.error(message, error);
+                eventEmitter.emit('error', message, error);
                 reject(error);
             });
 
@@ -68,7 +68,7 @@ export class GeminiWebsocketClient extends EventEmitter {
                 if (event.data instanceof Blob) {
                     this.receive(event.data);
                 } else {
-                    console.error('Non-blob message received', event);
+                    eventEmitter.emit('error', 'Non-blob message received', event);
                 }
             });
         });
@@ -203,7 +203,7 @@ export class GeminiWebsocketClient extends EventEmitter {
             await this.sendJSON(formattedText);
             this.emit('text_sent', { name: this.name, text });
         } catch (error) {
-            console.error(`Failed to send text to ${this.name}:`, error);
+            eventEmitter.emit('error', `Failed to send text to ${this.name}:`, error);
             // Consider emitting an error event here to notify the application
             this.emit('error', { message: 'Failed to send text message', error: error });
         }

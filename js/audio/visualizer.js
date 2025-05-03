@@ -1,7 +1,3 @@
-/**
- * AudioVisualizer creates a waveform visualization
- * using Web Audio API's AnalyserNode to process audio data in real-time.
- */
 export class AudioVisualizer {
     constructor(audioContext, canvasId) {
         this.audioContext = audioContext;
@@ -71,10 +67,11 @@ export class AudioVisualizer {
      * Creates gradient for visualization
      */
     createGradient() {
-        this.gradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, 0);
-        this.gradientColors.forEach((color, index) => {
-            this.gradient.addColorStop(index / (this.gradientColors.length - 1), color);
-        });
+        //this.gradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, 0);
+        //this.gradientColors.forEach((color, index) => {
+        //    this.gradient.addColorStop(index / (this.gradientColors.length - 1), color);
+        //});
+        this.gradient = localStorage.getItem('visualizerColor') || '#00FF00';
     }
     
     /**
@@ -109,7 +106,7 @@ export class AudioVisualizer {
         
         // Set up drawing style
         this.ctx.lineWidth = this.lineWidth;
-        this.ctx.strokeStyle = this.gradient;
+        this.ctx.strokeStyle = localStorage.getItem('visualizerColor') || '#00FF00';
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
         
@@ -150,7 +147,7 @@ export class AudioVisualizer {
         
         // Add glow effect
         this.ctx.shadowBlur = 10;
-        this.ctx.shadowColor = this.gradientColors[0];
+        this.ctx.shadowColor = localStorage.getItem('visualizerColor') || '#00FF00';
         
         // Stroke the path
         this.ctx.stroke();
@@ -168,8 +165,12 @@ export class AudioVisualizer {
     cleanup() {
         this.stop();
         window.removeEventListener('resize', this.resize);
-        if (this.analyser) {
-            this.analyser.disconnect();
+        try {
+            if (this.analyser) {
+                this.analyser.disconnect();
+            }
+        } catch (error) {
+            eventEmitter.emit('error', 'Error cleaning up visualizer:', error);
         }
     }
 } 

@@ -1,3 +1,6 @@
+import EventEmitter from 'eventemitter3';
+
+export const eventEmitter = new EventEmitter();
 /**
  * Converts a Blob object to a JSON object using FileReader.
  * Useful for processing blob data received from APIs
@@ -57,6 +60,6 @@ export function arrayBufferToBase64(buffer) {
         }
         return btoa(binary);
     } catch (error) {
-        console.error('Failed to convert array buffer to base64: ' + error.message);
+        eventEmitter.emit('error', 'Failed to convert array buffer to base64: ' + error.message);
     }
 }

@@ -52,12 +52,12 @@ export class AudioStreamer {
      */
     set sampleRate(value) {
         if (!Number.isFinite(value) || value <= 1 || value > 48000) {
-            console.warn('Attempt to set invalid sample rate:' + value + '. Must be between 1 and 48000Hz. Using saved sample rate instead:' + this._sampleRate);
+            eventEmitter.emit('warn', 'Attempt to set invalid sample rate:' + value + '. Must be between 1 and 48000Hz. Using saved sample rate instead:' + this._sampleRate);
             return;
         }
         this._sampleRate = value;
         this.bufferSize = Math.floor(value * 0.32);  // 320ms buffer
-        console.info('Sample rate updated', { newRate: value, newBufferSize: this.bufferSize });
+        eventEmitter.emit('info', 'Sample rate updated', { newRate: value, newBufferSize: this.bufferSize });
     }
 
     /**
@@ -66,12 +66,12 @@ export class AudioStreamer {
      */
     streamAudio(chunk) {
         if (!this.isInitialized) {
-            console.warn('AudioStreamer not initialized. Call initialize() first.');
+            eventEmitter.emit('warn', 'AudioStreamer not initialized. Call initialize() first.');
             return;
         }
 
         if (!chunk || !(chunk instanceof Int16Array || chunk instanceof Uint8Array)) {
-            console.warn('Invalid audio chunk provided', { chunkType: chunk ? chunk.constructor.name : 'null' });
+            eventEmitter.emit('warn', 'Invalid audio chunk provided', { chunkType: chunk ? chunk.constructor.name : 'null' });
             return;
         }
 
@@ -90,14 +90,14 @@ export class AudioStreamer {
             const maxSize = this.bufferSize * 4;
             
             if (this.processingBuffer.length > maxSize) {
-                console.warn('Processing buffer overflow, performing graceful reset', {
+                eventEmitter.emit('warn', 'Processing buffer overflow, performing graceful reset', {
                     bufferSize: this.processingBuffer.length,
                     maxSize: maxSize
                 });
                 // Keep the most recent data when resetting
                 this.processingBuffer = this.processingBuffer.slice(-this.bufferSize);
             } else if (this.processingBuffer.length > warningThreshold) {
-                console.warn('Processing buffer approaching limit', {
+                eventEmitter.emit('warn', 'Processing buffer approaching limit', {
                     bufferSize: this.processingBuffer.length,
                     warningThreshold: warningThreshold,
                     maxSize: maxSize
@@ -216,7 +216,7 @@ export class AudioStreamer {
      * Implements smooth fade-out and resets audio pipeline
      */
     stop() {
-        console.info('Stopping audio playback');
+        eventEmitter.emit('info', 'Stopping audio playback');
         this.isPlaying = false;
         this.isStreamComplete = true;
         
@@ -266,7 +266,7 @@ export class AudioStreamer {
             this.gainNode.gain.setValueAtTime(1, this.context.currentTime);
             this.isInitialized = true;
 
-            console.info('AudioStreamer initialization complete');
+            eventEmitter.emit('info', 'AudioStreamer initialization complete');
         } catch (error) {
             throw new Error('Failed to initialize AudioStreamer:' + error);
         }

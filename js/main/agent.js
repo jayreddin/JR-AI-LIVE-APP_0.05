@@ -302,7 +302,7 @@ export class GeminiAgent{
      */
     async initializeModelSpeechTranscriber() {
         if (!this.modelTranscriber) {
-            console.warn('Either no Deepgram API key provided or model speech transcription disabled');
+            eventEmitter.emit('warn', 'Either no Deepgram API key provided or model speech transcription disabled');
             return;
         }
 
@@ -311,11 +311,11 @@ export class GeminiAgent{
         // Promise to send keep-alive every 10 seconds once connected
         const connectionPromise = new Promise((resolve) => {
             this.modelTranscriber.on('connected', () => {
-                console.info('Model speech transcriber connection established, setting up keep-alive...');
+                eventEmitter.emit('info', 'Model speech transcriber connection established, setting up keep-alive...');
                 this.modelsKeepAliveInterval = setInterval(() => {
                     if (this.modelTranscriber.isConnected) {
                         this.modelTranscriber.ws.send(JSON.stringify({ type: 'KeepAlive' }));
-                        console.info('Sent keep-alive message to model speech transcriber');
+                        eventEmitter.emit('info', 'Sent keep-alive message to model speech transcriber');
                     }
                 }, 10000);
                 resolve();
@@ -347,11 +347,11 @@ export class GeminiAgent{
         // Promise to send keep-alive every 10 seconds once connected
         const connectionPromise = new Promise((resolve) => {
             this.userTranscriber.on('connected', () => {
-                console.info('User speech transcriber connection established, setting up keep-alive...');
+                eventEmitter.emit('info', 'User speech transcriber connection established, setting up keep-alive...');
                 this.userKeepAliveInterval = setInterval(() => {
                     if (this.userTranscriber.isConnected) {
                         this.userTranscriber.ws.send(JSON.stringify({ type: 'KeepAlive' }));
-                        console.info('Sent keep-alive message to user transcriber');
+                        eventEmitter.emit('info', 'Sent keep-alive message to user transcriber');
                     }
                 }, 10000);
                 resolve();
@@ -395,14 +395,14 @@ export class GeminiAgent{
                     await this.initializeUserSpeechTranscriber();
                 }
             } else {
-                console.warn('No Deepgram API key provided, transcription disabled');
+                eventEmitter.emit('warn', 'No Deepgram API key provided, transcription disabled');
             }
             
             this.initialized = true;
             this.emit('initialized', this.client.name);
             this.client.sendText('.');  // Trigger the model to start speaking first
         } catch (error) {
-            console.error('Initialization error:', error);
+            eventEmitter.emit('error', 'Initialization error:', error);
             throw new Error('Error during the initialization of the client: ' + error.message);
         }
     }
@@ -416,7 +416,7 @@ export class GeminiAgent{
                     this.userTranscriber.sendAudio(new Uint8Array(audioData));
                 }
             } catch (error) {
-                console.error('Error sending audio data:', error);
+                eventEmitter.emit('error', 'Error sending audio data:', error);
                 this.audioRecorder.stop();
             }
         });

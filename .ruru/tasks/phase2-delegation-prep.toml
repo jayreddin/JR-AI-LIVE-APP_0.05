@@ -4,7 +4,42 @@
 title = "Prepare for Delegation to Implementation Leads"
 description = "Finalize Phase 2 planning artifacts, assign responsibilities, and prepare all necessary documentation for handoff to implementation leads."
 phase = "Phase 2: Issue Compilation & Planning"
-status = "pending"
-assignee = ""
+status = "completed"
+assignee = "manager-project"
 dependencies = ["phase2-reviewer-integration"]
 created = "2025-05-02"
+notes = """
+Tasks and Subtasks:
+
+1. Memory Management in `js/audio/streamer.js`
+   - Subtask: Review existing memory management logic.
+   - Subtask: Test the warning threshold and buffer reset mechanism.
+   - Subtask: Implement further optimizations if needed.
+   - Assignee: Backend Lead
+   - Deadline: 2025-05-09
+
+2. Debug Statement Removal and Logging Implementation
+   - Subtask: Verify the removal of all `console.debug/info` statements.
+   - Subtask: Ensure proper event-based logging is in place.
+   - Subtask: Test the logging mechanism.
+   - Assignee: Frontend Lead
+   - Deadline: 2025-05-09
+
+3. WebSocket Error Handling Enhancement
+   - Subtask: Review the implemented error handling in `js/ws/client.js`.
+   - Subtask: Test the error handling mechanism.
+   - Subtask: Implement further enhancements if needed.
+   - Assignee: Backend Lead
+   - Deadline: 2025-05-09
+
+4. Review and Test
+   - Subtask: Review all the implemented solutions.
+   - Subtask: Test the application to ensure stability and functionality.
+   - Assignee: QA Lead
+   - Deadline: 2025-05-12
+
+5. Implement Solution
+   - Subtask: Implement the solution based on the review and testing.
+   - Assignee: Senior Developer
+   - Deadline: 2025-05-13
+"""

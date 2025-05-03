@@ -46,7 +46,7 @@ geminiAgent.on('turn_complete', () => {
 });
 
 geminiAgent.on('text', (text) => {
-    console.log('text', text);
+    eventEmitter.emit('log', 'text', text);
     chatManager.updateStreamingMessage(text);
 });
 

@@ -15,7 +15,7 @@ export class AudioRecorder extends EventTarget {
 
     async start(onAudioData) {
         if (this.isRecording) {
-            console.warn('Already recording');
+            eventEmitter.emit('warn', 'Already recording');
             return;
         }
 
@@ -54,9 +54,9 @@ export class AudioRecorder extends EventTarget {
             this.source.connect(this.processor);
             this.processor.connect(this.audioContext.destination);
             this.isRecording = true;
-            console.info('Audio recording started');
+            eventEmitter.emit('info', 'Audio recording started');
         } catch (error) {
-            console.error('Failed to start audio recording:', error);
+            eventEmitter.emit('error', 'Failed to start audio recording:', error);
             if (this.stream) {
                 console.warn('Cleaning up stream after start() error');
                 this.stream.getTracks().forEach(track => track.stop());
@@ -74,7 +74,7 @@ export class AudioRecorder extends EventTarget {
     stop() {
         try {
             if (!this.isRecording) {
-                console.warn('stop() called but was not recording');
+                eventEmitter.emit('warn', 'stop() called but was not recording');
                 return;
             }
 
@@ -82,12 +82,12 @@ export class AudioRecorder extends EventTarget {
                 this.stream.getTracks().forEach(track => {
                     if (track.readyState !== 'ended') {
                         track.stop();
-                        console.info('Stopped audio track:', track.id);
+                        eventEmitter.emit('info', 'Stopped audio track:', track.id);
                     }
                 });
                 this.stream = null;
             } else {
-                console.warn('No stream to clean up in stop()');
+                eventEmitter.emit('warn', 'No stream to clean up in stop()');
             }
 
             this.isRecording = false;
@@ -95,16 +95,16 @@ export class AudioRecorder extends EventTarget {
 
             if (this.audioContext) {
                 this.audioContext.close().then(() => {
-                    console.info('AudioContext closed successfully');
+                    eventEmitter.emit('info', 'AudioContext closed successfully');
                 }).catch((err) => {
-                    console.error('Error closing AudioContext:', err);
+                    eventEmitter.emit('error', 'Error closing AudioContext:', err);
                 });
                 this.audioContext = null;
             } else {
                 console.warn('No audioContext to clean up in stop()');
             }
         } catch (error) {
-            console.error('Failed to stop audio recording:', error);
+            eventEmitter.emit('error', 'Failed to stop audio recording:', error);
             throw new Error('Failed to stop audio recording:' + error);
         }
     }
@@ -116,7 +116,7 @@ export class AudioRecorder extends EventTarget {
             await this.audioContext.suspend();
             this.stream.getTracks().forEach(track => track.enabled = false);
             this.isSuspended = true;
-            console.info('Microphone suspended');
+            eventEmitter.emit('info', 'Microphone suspended');
         } catch (error) {
             throw new Error('Failed to suspend microphone:' + error);
         }
@@ -129,7 +129,7 @@ export class AudioRecorder extends EventTarget {
             await this.audioContext.resume();
             this.stream.getTracks().forEach(track => track.enabled = true);
             this.isSuspended = false;
-            console.info('Microphone resumed');
+            eventEmitter.emit('info', 'Microphone resumed');
         } catch (error) {
             throw new Error('Failed to resume microphone:' + error);
         }

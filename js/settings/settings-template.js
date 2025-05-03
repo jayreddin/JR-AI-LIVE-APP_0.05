@@ -53,6 +53,10 @@ export const settingsTemplate = `
         </div>
     </div>
 </div>
+<div class="settings-group">
+    <label for="visualizerColor">Visualizer Bar Color</label>
+    <input type="color" id="visualizerColor">
+</div>
 
 <div class="settings-group">
     <div class="collapsible" id="advancedToggle">Advanced Settings ▼</div>

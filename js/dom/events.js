@@ -59,7 +59,7 @@ export function setupEventListeners(agent) {
                 await ensureAgentReady(agent);
             }
         } catch (error) {
-            console.error('Error toggling connection:', error);
+            eventEmitter.emit('error', 'Error toggling connection:', error);
         }
     });
 
@@ -71,7 +71,7 @@ export function setupEventListeners(agent) {
             await agent.toggleMic();
             elements.micBtn.classList.toggle('active');
         } catch (error) {
-            console.error('Error toggling microphone:', error);
+            eventEmitter.emit('error', 'Error toggling microphone:', error);
             elements.micBtn.classList.remove('active');
         }
     });
@@ -90,7 +90,7 @@ export function setupEventListeners(agent) {
             }
             isCameraActive = !isCameraActive;
         } catch (error) {
-            console.error('Error toggling camera:', error);
+            eventEmitter.emit('error', 'Error toggling camera:', error);
             elements.cameraBtn.classList.remove('active');
             isCameraActive = false;
         }
@@ -103,7 +103,7 @@ export function setupEventListeners(agent) {
     agent.on('screenshare_stopped', () => {
         elements.screenBtn?.classList.remove('active');
         isScreenShareActive = false;
-        console.info('Screen share stopped');
+        eventEmitter.emit('info', 'Screen share stopped');
     });
 
     elements.screenBtn?.addEventListener('click', async () => {
@@ -119,7 +119,7 @@ export function setupEventListeners(agent) {
             }
             isScreenShareActive = !isScreenShareActive;
         } catch (error) {
-            console.error('Error toggling screen share:', error);
+            eventEmitter.emit('error', 'Error toggling screen share:', error);
             elements.screenBtn.classList.remove('active');
             isScreenShareActive = false;
         }
@@ -135,7 +135,7 @@ export function setupEventListeners(agent) {
                 elements.messageInput.value = '';
             }
         } catch (error) {
-            console.error('Error sending message:', error);
+            eventEmitter.emit('error', 'Error sending message:', error);
         }
     };
 

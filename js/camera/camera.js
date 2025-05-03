@@ -103,7 +103,7 @@ export class CameraManager {
                 const imageBase64 = await this.capture();
                 this.emit('frame', imageBase64);
             } catch (error) {
-                console.error('Auto capture error:', error);
+                eventEmitter.emit('error', 'Auto capture error:', error);
             }
         }, interval);
     }
@@ -153,13 +153,13 @@ export class CameraManager {
         } catch (error) {
             // Reviewer suggestion: granular error messages
             if (error.name === 'NotAllowedError') {
-                console.error('Camera switch failed: access denied.');
+                eventEmitter.emit('error', 'Camera switch failed: access denied.');
             } else if (error.name === 'NotFoundError') {
-                console.error('Camera switch failed: no camera device found.');
+                eventEmitter.emit('error', 'Camera switch failed: no camera device found.');
             } else if (error.name === 'NotReadableError') {
-                console.error('Camera switch failed: camera in use by another application.');
+                eventEmitter.emit('error', 'Camera switch failed: camera in use by another application.');
             } else {
-                console.error('Failed to switch camera:', error);
+                eventEmitter.emit('error', 'Failed to switch camera:', error);
             }
             this.config.facingMode = localStorage.getItem('facingMode') || 'environment';
         }

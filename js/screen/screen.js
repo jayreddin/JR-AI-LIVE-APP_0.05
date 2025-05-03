@@ -72,7 +72,7 @@ export class ScreenManager {
                 this.previewContainer = previewContainer;
                 this.showPreview(); // Show preview when initialized
             } else {
-                console.error("ScreenManager: #screenPreview container not found.");
+                eventEmitter.emit('error', "ScreenManager: #screenPreview container not found.");
             }
 
             await this.videoElement.play();
@@ -107,12 +107,12 @@ export class ScreenManager {
             this.isInitialized = true;
         } catch (error) {
             // Enhanced error handling and cleanup
-            console.error("ScreenManager: Error during initialize:", error);
+            eventEmitter.emit('error', "ScreenManager: Error during initialize:", error);
             if (streamAcquired) {
                 try {
                     this.dispose();
                 } catch (cleanupError) {
-                    console.error("ScreenManager: Error during cleanup after failed initialize:", cleanupError);
+                    eventEmitter.emit('error', "ScreenManager: Error during cleanup after failed initialize:", cleanupError);
                 }
             }
             throw new Error(`Failed to initialize screen capture: ${error && error.message ? error.message : error}`);
